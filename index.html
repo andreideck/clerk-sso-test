@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Additional Auth</title>
+  <style>
+    body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #f7f7f8; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: #131316; }
+    #signed-in { display: none; text-align: center; }
+    #signed-in h1 { font-size: 20px; font-weight: 600; margin: 0 0 8px; }
+    #signed-in button { margin-top: 16px; padding: 8px 16px; border: 1px solid #d9d9de; border-radius: 6px; background: #fff; cursor: pointer; }
+    #flow { position: fixed; bottom: 12px; font-size: 12px; color: #747686; }
+    #flow a { color: inherit; }
+  </style>
+</head>
+<body>
+  <div id="sign-in"></div>
+  <div id="signed-in">
+    <h1>Signed in</h1>
+    <div>Email: <span id="email"></span></div>
+    <button id="sign-out">Sign out</button>
+  </div>
+  <div id="flow"></div>
+
+  <script>
+    // OAuth flow flag: ?flow=popup | redirect | auto (Clerk's SignIn `oauthFlow`). Default popup.
+    var params = new URLSearchParams(location.search);
+    var flow = ["popup", "redirect", "auto"].indexOf(params.get("flow")) >= 0 ? params.get("flow") : "popup";
+    var here = location.origin + location.pathname;
+    document.getElementById("flow").innerHTML =
+      "OAuth flow: " + flow + " · switch to " +
+      ["popup", "redirect"].filter(function (f) { return f !== flow; })
+        .map(function (f) { return '<a href="?flow=' + f + '">' + f + "</a>"; }).join(" ");
+  </script>
+  <script
+    async
+    crossorigin="anonymous"
+    data-clerk-publishable-key="pk_test_aW50ZW5zZS1mb3hob3VuZC0yOTgwLmNsZXJrLmFjY291bnRzLmRldiQ="
+    src="https://intense-foxhound-2980.clerk.accounts.dev/npm/@clerk/clerk-js@5/dist/clerk.browser.js"
+    type="text/javascript"
+    onload="start()"></script>
+  <script>
+    async function start() {
+      await Clerk.load();
+      var back = here + "?flow=" + flow;
+      if (Clerk.user) {
+        document.getElementById("email").textContent = Clerk.user.primaryEmailAddress
+          ? Clerk.user.primaryEmailAddress.emailAddress : "(none)";
+        document.getElementById("signed-in").style.display = "block";
+        document.getElementById("sign-out").onclick = function () { Clerk.signOut({ redirectUrl: back }); };
+      } else {
+        Clerk.mountSignIn(document.getElementById("sign-in"), {
+          oauthFlow: flow,
+          forceRedirectUrl: back,
+          signUpForceRedirectUrl: back,
+        });
+      }
+    }
+  </script>
+</body>
+</html>
