@@ -27,10 +27,8 @@
     var params = new URLSearchParams(location.search);
     var flow = ["popup", "redirect", "auto"].indexOf(params.get("flow")) >= 0 ? params.get("flow") : "popup";
     var here = location.origin + location.pathname;
-    document.getElementById("flow").innerHTML =
-      "OAuth flow: " + flow + " · switch to " +
-      ["popup", "redirect"].filter(function (f) { return f !== flow; })
-        .map(function (f) { return '<a href="?flow=' + f + '">' + f + "</a>"; }).join(" ");
+    // No switch link: an agent that can't see the sign-in box clicks it instead (trun_2Fy2BDH2eVw9xpOQ).
+    document.getElementById("flow").textContent = "OAuth flow: " + flow;
   </script>
   <script
     async
